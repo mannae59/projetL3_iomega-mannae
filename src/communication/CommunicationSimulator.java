@@ -7,12 +7,18 @@ import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
+import java.util.List;
 
-public class Lecteur implements Runnable{
+import update.Observable;
+import update.Observer;
+
+public class CommunicationSimulator implements Runnable, Observable {
+	private List<Observer> tabObserver;
 	Socket socketAtraiter;
 	   
 	public void run() {
 		try {
+            System.out.println("Thread " + Thread.currentThread().getId() + ": Initializing...");
 			BufferedReader in = new BufferedReader(new InputStreamReader(socketAtraiter.getInputStream()));
 			try {
 				boolean dataWillCome = true;
@@ -21,7 +27,7 @@ public class Lecteur implements Runnable{
 			        {
 			          String input = in.readLine();
 			          if (input != null) {
-			            System.out.println(input);
+			            System.out.println("Thread " + Thread.currentThread().getId() + ": " +  input);
 			            if(input.startsWith("Deconnexion")) {
 			            	dataWillCome = false;
 			            }
@@ -29,6 +35,7 @@ public class Lecteur implements Runnable{
 			        }
 			        catch (SocketException se)
 			        {
+			        	System.out.println("Thread " + Thread.currentThread().getId() + ": Connection closed.");
 			        	dataWillCome = false;
 			        }
 			      }
@@ -39,6 +46,29 @@ public class Lecteur implements Runnable{
 		e.printStackTrace();
 	}
 	}
+	
+	public void listeningAPI() {
+		// TODO Complete this method
+	}
+	public void connectionSensor() {
+		// TODO Complete this method
+	}
+	public void deconnectionSensor() {
+		// TODO Complete this method
+	}
+	public void dataSensor() {
+		// TODO Complete this method
+	}
+	public void addObserver(Observer o) {
+		// TODO Complete this method
+	}
+	public void notifyObserver(Observer o) {
+		// TODO Complete this method
+	}
+	public void deleteObserver(Observer o) {
+		// TODO Complete this method
+	}
+	
 	public static void main(String[] args) {
 		ServerSocket socketserver; // Socket principal du serveur
 		Socket socketThread; // Socket attribué au thread qui traitera un capteur
@@ -55,7 +85,7 @@ public class Lecteur implements Runnable{
 				for(int i = 0; i < 4;i++) {
 
 					socketThread = socketserver.accept();
-					Lecteur lecteur = new Lecteur();
+					CommunicationSimulator lecteur = new CommunicationSimulator();
 					lecteur.socketAtraiter = socketThread;
 					Thread t = new Thread(lecteur);
 					t.start();
@@ -69,7 +99,7 @@ public class Lecteur implements Runnable{
 		}
 		catch (IOException e) {
 			e.printStackTrace();
-		}	
+		}
 	}
 
 }
