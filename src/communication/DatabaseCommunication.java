@@ -6,7 +6,7 @@ import java.util.List;
 import update.Observable;
 import update.Observer;
 
-public class CommunicationBDD implements Observable {
+public class DatabaseCommunication implements Observable {
 	private List<Observer> tabObserver;
 
 	public void addObserver(Observer o) {
