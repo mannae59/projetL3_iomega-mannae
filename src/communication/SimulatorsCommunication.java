@@ -13,9 +13,11 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import java.awt.EventQueue;
 
 import update.Observable;
 import update.Observer;
+import display.Display;
 
 public class SimulatorsCommunication implements Runnable, Observable {
 	private List<Observer> tabObserver = new ArrayList<>();
@@ -158,6 +160,12 @@ public class SimulatorsCommunication implements Runnable, Observable {
 		ServerSocket socketserver; // Socket principal du serveur
 		Socket socketThread; // Socket attribué au thread qui traitera un capteur
 		DatabaseCommunication db = new DatabaseCommunication();
+		
+		EventQueue.invokeLater(() -> {
+			Display display = new Display();
+			display.setVisible(true);
+		});
+		
 		boolean dataWillCome = true;
 		try {
 			// Declaration de la ressource
