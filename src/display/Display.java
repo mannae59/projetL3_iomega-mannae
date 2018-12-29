@@ -1,5 +1,6 @@
 package display;
 
+import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -10,6 +11,7 @@ import java.util.List;
 import java.util.TreeMap;
 
 import javax.imageio.ImageIO;
+import javax.swing.Action;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -19,6 +21,7 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTable;
+import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 
 import update.Observable;
@@ -37,6 +40,9 @@ public class Display extends JFrame implements Observable {
 	public Display(){
 		initUI();
 	}
+	
+	
+	
 	private void initUI(){
 		// Essayer d'appliquer le look de l'OS au lieu de celui de Swing
 //		try {
