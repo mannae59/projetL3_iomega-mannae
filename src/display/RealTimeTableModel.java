@@ -1,23 +1,29 @@
 package display;
 
-import java.awt.Dimension;
+import java.util.List;
 
-import javax.swing.JTable;
 import javax.swing.table.AbstractTableModel;
 
+@SuppressWarnings("serial")
 public class RealTimeTableModel extends AbstractTableModel{
-	String[][] data;
-	public RealTimeTableModel(String[][] data) {
+	List<List<String>> data;
+	public RealTimeTableModel(List<List<String>> data) {
 		this.data = data;
 	}
 	public int getColumnCount() {
-		return data[0].length;
+		if(getRowCount()==0) {
+			return 0;
+		}
+		return data.get(0).size();
 	}
 	public int getRowCount() {
-		return data.length;
+		if(data == null) {
+			return 0;
+		}
+		return data.size();
 	}
 	public Object getValueAt(int indiceLigne, int indiceColonne) {
-		return data[indiceLigne][indiceColonne];
+		return data.get(indiceLigne).get(indiceColonne);
 	}
 	public String getColumnName(int indiceColonne) {
 		switch(indiceColonne) {
@@ -30,8 +36,7 @@ public class RealTimeTableModel extends AbstractTableModel{
 	}
 	public void setValueAt(Object val, int indiceLigne, int indiceColonne) {
 		// Does nothing, because the values should not be modified.
-			
-		}
+	}
 	public boolean isCellEditable(int indiceLigne, int indiceColonne) {
 		return false; // No cell is editable
 	}

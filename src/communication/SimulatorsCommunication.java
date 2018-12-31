@@ -160,7 +160,7 @@ public class SimulatorsCommunication implements Runnable, Observable {
 		DatabaseCommunication db = new DatabaseCommunication();
 		// Initialisation de l'interface
 				EventQueue.invokeLater(() -> {
-					Display display = new Display();
+					Display display = new Display(db);
 					display.setVisible(true);
 				});
 				
@@ -168,7 +168,6 @@ public class SimulatorsCommunication implements Runnable, Observable {
 				try {
 					// Declaration de la ressource
 					InetAddress adresseServeur = InetAddress.getLocalHost(); // Recuperation de l'adresse de la machine
-					//int port = 5678; // Sera entré par l'utilisateur ensuite
 					System.out.println("Serveur en ligne : " + adresseServeur + ":" + port); 
 					socketserver = new ServerSocket(port);
 					try {
