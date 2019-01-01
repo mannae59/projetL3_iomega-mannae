@@ -10,12 +10,17 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JTextField;
 
-import communication.SimulatorsCommunication;
+import communication.DatabaseCommunication;
+import communication.Main;
 
 @SuppressWarnings("serial")
-public class AskPort extends JFrame {
+public class AskPort extends JFrame implements Runnable {
 	int port = 0;
-	public AskPort() {
+	DatabaseCommunication db;
+	Main main;
+	public AskPort(DatabaseCommunication db, Main main) {
+		this.db = db;
+		this.main = main;
 		// New window asking the port
 		setSize(200,150); // Taille de la fenetre : 640 x 480
 		setLocationRelativeTo(null); // Centrage
@@ -35,11 +40,17 @@ public class AskPort extends JFrame {
 		text.setBounds(25,50,50,20);
 		add(text);
 		// Ajout du bouton OK
-		JButton OKbutton = new JButton("OK");
+		JButton okButton = new JButton("OK");
 		// Action a effectuer lors de l'appui du bouton OK
-		OKbutton.addActionListener(lancerProgramme);
-		OKbutton.setBounds(100,50,75,20);
-		add(OKbutton);
+		okButton.addActionListener(lancerProgramme);
+		okButton.setBounds(100,50,75,20);
+		add(okButton);
+	}
+	public void run() {
+		this.setVisible(true);
+	}
+	public void hideMyself() {
+		this.setVisible(false);
 	}
 	// Cree l'action liee au champ et au bouton : ici cache la fenetre et lance la nouvelle fenetre
 	// apres avoir recupere le port
@@ -49,10 +60,14 @@ public class AskPort extends JFrame {
 				public void actionPerformed(ActionEvent e) {
 					try {
 						port = Integer.parseInt(text.getText());
+						if(port < 1 || port > 65535) {
+							throw new IllegalArgumentException("Port doit etre compris entre 1 et 65535");
+						}
+						main.setPort(port);
+						Display display = new Display(db,main);
 						setVisible(false);
-						SimulatorsCommunication.startWindows(port);
 					}
-					catch(NumberFormatException n) {
+					catch(IllegalArgumentException n) {
 						JOptionPane.showMessageDialog(null,  "Entrez un numéro de port valide.");
 					}
 				}
