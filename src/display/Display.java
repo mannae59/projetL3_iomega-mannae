@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.TreeMap;
 
@@ -21,6 +22,7 @@ import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
@@ -41,7 +43,7 @@ import update.Observable;
 import update.Observer;
 
 @SuppressWarnings("serial")
-public class Display extends JFrame implements Runnable,Observable {
+public class Display extends JFrame implements Observable {
 	private List<Observer> tabObserver;
 	private List<String> listConnectedSensors;
 	private List<String> sensorDateVariation1;
@@ -65,7 +67,9 @@ public class Display extends JFrame implements Runnable,Observable {
 		initUI();
 	}
 	
-	
+	public void setNbRedRows(int nb) {
+		this.nbRedRows = nb;
+	}
 	
 	private void initUI(){
 		// Essayer d'appliquer le look de l'OS au lieu de celui de Swing
@@ -88,8 +92,26 @@ public class Display extends JFrame implements Runnable,Observable {
 		setVisible(true);
 	}
 	
-	public void run() {
-		this.setVisible(true);
+	private JButton createWarningButton() {
+		JButton button = new JButton(Integer.toString(nbRedRows));
+		  try {
+		    Image img = ImageIO.read(getClass().getResource("warning.png"));
+		    button.setIcon(new ImageIcon(img));
+		    button.setHorizontalTextPosition(SwingConstants.CENTER);
+		    button.setVerticalTextPosition(SwingConstants.BOTTOM);
+		    button.addActionListener(new AbstractAction() {
+				@Override
+				public void actionPerformed(ActionEvent arg0) {
+					new WindowAlert(nbRedRows);
+					
+				}
+			});
+		  } catch (IOException ex) {
+		    ex.printStackTrace();
+		  } catch(IllegalArgumentException e) {
+			  JOptionPane.showMessageDialog(null,"Erreur : le logo du bouton Warning est introuvable.");
+		  }
+		  return button;
 	}
 	
 	public JPanel initTabRealTime() { // Decoupage en 6 colonnes, 5 lignes
@@ -97,33 +119,6 @@ public class Display extends JFrame implements Runnable,Observable {
 		JPanel realTime = new JPanel(new GridBagLayout());
 		GridBagConstraints c = new GridBagConstraints();
 		/* Creation des elements de la frame */
-		
-		// Table
-		List<List<String>> sensorsList = getAllSensors();
-		RealTimeTableModel rttmodel = new RealTimeTableModel(sensorsList);
-		JTable table = new JTable(rttmodel) {
-			@Override
-			public Dimension getPreferredScrollableViewportSize()
-		    {
-		        return new Dimension(310, 310);
-		    }
-		};
-		// Choix de la largeur des colonnes
-		if(sensorsList != null && table.getColumnModel().getSelectedColumnCount() > 3) {
-			table.getColumnModel().getColumn(0).setPreferredWidth(60);
-			table.getColumnModel().getColumn(1).setPreferredWidth(140);
-			table.getColumnModel().getColumn(2).setPreferredWidth(110);
-			table.getColumnModel().getColumn(3).setPreferredWidth(50);
-		}
-	
-		// Ajout de la table avec scrollPane
-		c.gridx = 0;
-		c.gridy = 0;
-		c.gridwidth = 3;
-		c.gridheight = 8;
-		c.insets = new Insets(20,10,60,10);
-		JScrollPane scroller = new JScrollPane(table);
-		realTime.add(scroller,c);
 		
 		// Label "Trier par"
 		JLabel lblTrierPar = new JLabel("Trier par...");
@@ -141,27 +136,42 @@ public class Display extends JFrame implements Runnable,Observable {
 		c.gridy = 1;
 		realTime.add(sortList,c);
 		
-		JButton button = new JButton(Integer.toString(nbRedRows));
-		  try {
-		    Image img = ImageIO.read(getClass().getResource("warning.png"));
-		    button.setIcon(new ImageIcon(img));
-		    button.setHorizontalTextPosition(SwingConstants.CENTER);
-		    button.setVerticalTextPosition(SwingConstants.BOTTOM);
-		    button.addActionListener(new AbstractAction() {
-				@Override
-				public void actionPerformed(ActionEvent arg0) {
-					new WindowAlert(nbRedRows);
-					
-				}
-			});
-		  } catch (IOException ex) {
-		    ex.printStackTrace();
-		  }
+		JButton button = createWarningButton();
 		c.insets = new Insets(0,10,60,10);
 		c.gridy = 4;
 		c.gridwidth = 2;
 		c.gridheight = 2;
 	    realTime.add(button,c);
+	    
+	 // Table
+ 		List<List<String>> sensorsList = getConnectedSensors();
+ 		RealTimeTableModel rttmodel = new RealTimeTableModel(sensorsList);
+ 		JTable table = new JTable(rttmodel) {
+ 			@Override
+ 			public Dimension getPreferredScrollableViewportSize()
+ 		    {
+ 		        return new Dimension(310, 310);
+ 		    }
+ 		};
+ 		// Sets the new cell renderer (whitch colors a line if the value exceeds the limits)
+ 		table.setDefaultRenderer(Object.class,new ColorTableModel(this,button,sensorsList.size()));
+ 		// Choix de la largeur des colonnes
+ 		if(sensorsList != null && table.getColumnModel().getSelectedColumnCount() > 3) {
+ 			table.getColumnModel().getColumn(0).setPreferredWidth(60);
+ 			table.getColumnModel().getColumn(1).setPreferredWidth(140);
+ 			table.getColumnModel().getColumn(2).setPreferredWidth(110);
+ 			table.getColumnModel().getColumn(3).setPreferredWidth(50);
+ 		}
+ 		
+ 		// Ajout de la table avec scrollPane
+ 		c.gridx = 0;
+ 		c.gridy = 0;
+ 		c.gridwidth = 3;
+ 		c.gridheight = 8;
+ 		c.insets = new Insets(20,10,60,10);
+ 		JScrollPane scroller = new JScrollPane(table);
+ 		realTime.add(scroller,c);
+	    
 		return realTime;
 	}
 	
@@ -301,13 +311,17 @@ public class Display extends JFrame implements Runnable,Observable {
 		// Association valeur + unité
 		String value = rawData.get(5) + " " + fluid.get(type);
 		sortedData.add(value);
+		// Ajout des seuils pour colorier les lignes concernees
+		sortedData.add(rawData.get(6));
+		sortedData.add(rawData.get(7));
+		
 		//sortedData = rawData; // Temporaire
 		return sortedData;
 	}
 	
-	public List<List<String>> getAllSensors(){
+	public List<List<String>> getConnectedSensors(){
 		List<List<String>> data = new ArrayList<>();
-		List<String> sensorsConnected = db.getSensorsConnected();
+		List<String> sensorsConnected = db.getConnectedSensors();
 		if(sensorsConnected != null) {
 			for(String sensor : sensorsConnected) {
 				data.add(decodeInfo(sensor));

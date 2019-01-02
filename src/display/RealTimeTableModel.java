@@ -16,7 +16,9 @@ public class RealTimeTableModel extends AbstractTableModel{
 		if(getRowCount()==0) {
 			return 0;
 		}
-		return data.get(0).size();
+		return data.get(0).size()-2;
+		// We do not display the minimum and maximum limits but we keep them
+		// to decide whever the row should be red or not
 	}
 	
 	@Override

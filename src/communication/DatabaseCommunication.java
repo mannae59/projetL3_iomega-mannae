@@ -1,5 +1,6 @@
 package communication;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -41,9 +42,13 @@ public class DatabaseCommunication implements Observable {
 	public void setSensorMaxLimit(String sensorName, float maxLimit) {
 		// TODO Complete this method
 	}
-	public List<String> getSensorsConnected() {
+	public List<String> getConnectedSensors() {
 		// TODO Complete this method
-		return null;
+		List<String> list = new ArrayList<String>();
+		list.add("sensor1:ELECTRICITE:U3:2:U3-205:6:0:10:True");
+		list.add("sensor2:ELECTRICITE:U3:2:U3-206:-4:0:10:True");
+		list.add("sensor3:ELECTRICITE:U3:2:U3-207:13:0:10:True");
+		return list;
 	}
 	public List<String> getSensorsWithFluid(String fluidType) {
 		// TODO Complete this method

@@ -137,7 +137,7 @@ public class SimulatorsCommunication implements Runnable, Observable {
 		        }
 		        catch (SocketException se)
 		        {
-		        	//System.out.println("Thread " + Thread.currentThread().getId() + ": Connection closed.");
+		        	// Connection closed by the simulator
 		        	dataWillCome = false;
 		        }
 		      }
@@ -156,7 +156,6 @@ public class SimulatorsCommunication implements Runnable, Observable {
 		// TODO Complete this method
 	}
 	
-	//public Display display;
 	
 	
 	

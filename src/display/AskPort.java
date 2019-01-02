@@ -61,14 +61,15 @@ public class AskPort extends JFrame implements Runnable {
 					try {
 						port = Integer.parseInt(text.getText());
 						if(port < 1 || port > 65535) {
+							System.out.println(port);
 							throw new IllegalArgumentException("Port doit etre compris entre 1 et 65535");
 						}
 						main.setPort(port);
-						Display display = new Display(db,main);
+						new Display(db,main);
 						setVisible(false);
 					}
 					catch(IllegalArgumentException n) {
-						JOptionPane.showMessageDialog(null,  "Entrez un numéro de port valide.");
+						JOptionPane.showMessageDialog(null,  "\"" + text.getText() + "\" n'est pas un nombre valide.\nEntrez un numéro de port valide.");
 					}
 				}
 			};
