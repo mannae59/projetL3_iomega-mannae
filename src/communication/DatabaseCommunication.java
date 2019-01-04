@@ -30,7 +30,7 @@ public class DatabaseCommunication implements Observable {
   //    |  //
 //		*   //
 //////////////	
-//PROBLEME L275 AVEC BDD NICOLAS (surement l'url )
+//PROBLEME L249 AVEC BDD NICOLAS (surement l'url ) avec getSensorDate
 	
 	
 	public DatabaseCommunication() {
