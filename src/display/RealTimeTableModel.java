@@ -1,24 +1,40 @@
 package display;
 
-import java.awt.Dimension;
+import java.util.List;
 
-import javax.swing.JTable;
 import javax.swing.table.AbstractTableModel;
 
+@SuppressWarnings("serial")
 public class RealTimeTableModel extends AbstractTableModel{
-	String[][] data;
-	public RealTimeTableModel(String[][] data) {
+	private List<List<String>> data;
+	public RealTimeTableModel(List<List<String>> data) {
 		this.data = data;
 	}
+	
+	@Override
 	public int getColumnCount() {
-		return data[0].length;
+		if(getRowCount()==0) {
+			return 0;
+		}
+		return data.get(0).size()-1;
+		// We do not display the 'limit exceeded' boolean which allows
+		// us to know if we should paint the row in red or not
 	}
+	
+	@Override
 	public int getRowCount() {
-		return data.length;
+		if(data == null) {
+			return 0;
+		}
+		return data.size();
 	}
+	
+	@Override
 	public Object getValueAt(int indiceLigne, int indiceColonne) {
-		return data[indiceLigne][indiceColonne];
+		return data.get(indiceLigne).get(indiceColonne);
 	}
+	
+	@Override
 	public String getColumnName(int indiceColonne) {
 		switch(indiceColonne) {
 		case 0 : return "Nom";
@@ -28,10 +44,13 @@ public class RealTimeTableModel extends AbstractTableModel{
 		default : return null;
 		}
 	}
+	
+	@Override
 	public void setValueAt(Object val, int indiceLigne, int indiceColonne) {
 		// Does nothing, because the values should not be modified.
-			
-		}
+	}
+	
+	@Override
 	public boolean isCellEditable(int indiceLigne, int indiceColonne) {
 		return false; // No cell is editable
 	}

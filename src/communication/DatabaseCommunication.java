@@ -15,6 +15,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
+import javax.swing.JOptionPane;
+
 import update.Observable;
 import update.Observer;
 
@@ -22,14 +24,15 @@ public class DatabaseCommunication implements Observable {
 	private List<Observer> tabObserver;
 	Connection connection =null ;
 	Statement stmt;
-	Map<Fluid,List<Integer>> defaultLimit = new TreeMap<>();
+	Fluid fluid = new Fluid();
+	Map<String,List<Integer>> defaultLimit = new TreeMap<>(); // Nicolas -- Changement de clé de Fluid vers String car l'enum n'en est plus un, pour pouvoir stocker les unites
 	
-		//
-	  // //
-	//  | //
-  //    |  //
-//		*   //
-//////////////	
+	   ////
+	 /// ///
+   ///  | ///
+ ///    |  ///
+//		*   ///
+////////////////	
 //PROBLEME L249 AVEC BDD NICOLAS (surement l'url ) avec getSensorDate
 	
 	
@@ -43,6 +46,7 @@ public class DatabaseCommunication implements Observable {
 			System.out.println("Connection Established");		 
 			 
 		}catch(ClassNotFoundException | SQLException e){
+			// JOptionPane.showMessageDialog(null,"Erreur : Impossible de communiquer avec la base de données."); // Suggestion (Nicolas) -> affiche une fenêtre avec un message, ça pourrait être intéressant :D
 			System.err.println(e);
 		}
 			
@@ -77,7 +81,7 @@ public class DatabaseCommunication implements Observable {
 	}
 	public void addNewSensor(String sensorName, String sensorInfo) {
 		String[] infos = sensorInfo.split(":");
-		Fluid type = Fluid.valueOf(infos[0]);
+		String type = fluid.valueOf(infos[0]); // Nicolas - 'Fluid type' changed to String type' to comply with the new spec
 		List<Integer> seuil = new ArrayList<>( defaultLimit.get(type));
 		
 		try {
@@ -158,7 +162,7 @@ public class DatabaseCommunication implements Observable {
 		}
 	}
 	
-	public List<String> getSensorsConnected() {
+	public List<String> getConnectedSensors() {
 		List<String> lCapteur = new ArrayList<>();
 		String nom;
 		Double val;
