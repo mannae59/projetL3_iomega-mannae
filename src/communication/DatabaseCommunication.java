@@ -40,7 +40,7 @@ public class DatabaseCommunication implements Observable {
 		//CONNECTION A LA BDD
 		try{		 
 			Class.forName("com.mysql.cj.jdbc.Driver");
-			connection = DriverManager.getConnection("jdbc:mysql://mysql-nicolasandre.alwaysdata.net:3306/nicolasandre_projetl3?useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC" ,"130718_admin","nicolasde31560");  
+			connection = DriverManager.getConnection("jdbc:mysql://mysql-nicolasandre.alwaysdata.net:3306/nicolasandre_marieleontinelandmann_projets5?useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC" ,"130718_admin","nicolasde31560");  
 			//connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/capteurBDD" ,"root",""); //ma bdd  		 
 			stmt = connection.createStatement();
 			System.out.println("Connection Established");		 

@@ -16,9 +16,10 @@ public class RealTimeTableModel extends AbstractTableModel{
 		if(getRowCount()==0) {
 			return 0;
 		}
-		return data.get(0).size()-1;
-		// We do not display the 'limit exceeded' boolean which allows
-		// us to know if we should paint the row in red or not
+		return 4;
+		// We do not display neither the 'limit exceeded' boolean which
+		// allows us to know if we should paint the row in red or not,
+		// nor the minimum and maximum limits.
 	}
 	
 	@Override
@@ -31,7 +32,16 @@ public class RealTimeTableModel extends AbstractTableModel{
 	
 	@Override
 	public Object getValueAt(int indiceLigne, int indiceColonne) {
-		return data.get(indiceLigne).get(indiceColonne);
+		switch(indiceColonne) {
+		case 0: return data.get(indiceLigne).get(0);
+		case 1: return data.get(indiceLigne).get(5);
+		case 2: return data.get(indiceLigne).get(1) + " - Etage " + data.get(indiceLigne).get(2) + " - " + data.get(indiceLigne).get(3);
+		case 3: return data.get(indiceLigne).get(4);
+		case 4: return data.get(indiceLigne).get(6);
+		case 5: return data.get(indiceLigne).get(7);
+		default : return data.get(indiceLigne).get(indiceColonne);
+		}
+		
 	}
 	
 	@Override
@@ -41,6 +51,8 @@ public class RealTimeTableModel extends AbstractTableModel{
 		case 1 : return "Type";
 		case 2 : return "Localisation";
 		case 3 : return "Valeur";
+		case 4 : return "Seuil min";
+		case 5 : return "Seuil max";
 		default : return null;
 		}
 	}

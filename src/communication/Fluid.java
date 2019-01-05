@@ -7,15 +7,15 @@ import java.util.Set;
 
 public class Fluid {
 	private Map<String,String> map = new HashMap<>();
-	public final static String EAU = "EAU";
-	public final static String ELECTRICITE = "ELECTRICITE";
-	public final static String TEMPERATURE = "TEMPERATURE";
-	public final static String AIRCOMPRIME = "AIRCOMPRIME";
+	public static final String EAU = "EAU";
+	public static final String ELECTRICITE = "ELECTRICITE";
+	public static final String TEMPERATURE = "TEMPERATURE";
+	public static final String AIRCOMPRIME = "AIRCOMPRIME";
 	public Fluid(){
-		map.put("EAU","m3");
-		map.put("ELECTRICITE","kWh");
-		map.put("TEMPERATURE", "°C");
-		map.put("AIRCOMPRIME","m3/h");
+		map.put(EAU,"m3");
+		map.put(ELECTRICITE,"kWh");
+		map.put(TEMPERATURE, "°C");
+		map.put(AIRCOMPRIME,"m3/h");
 	}
 	public Set<String> keySet() {
 		return map.keySet();

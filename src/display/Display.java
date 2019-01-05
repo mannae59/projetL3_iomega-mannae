@@ -69,6 +69,7 @@ public class Display extends JFrame implements Observable {
 	private List<String> sensorDateVariation2;
 	private List<String> sensorDateVariation3;
 	private List<String> sensorsAvailable; // Sensors got from the choice of the fluid on the 'later' panel
+	private List<List<String>> sensorsOutOfLimit;
 	private DatabaseCommunication db;
 	private int nbRedRows = 0;
 	private Fluid fluid;
@@ -84,21 +85,7 @@ public class Display extends JFrame implements Observable {
 		this.db = db;
 		this.fluid = new Fluid();
 		this.main = main;
-		readJsonAndSetBuildingsList();
 		initUI();
-	}
-	
-	private void readJsonAndSetBuildingsList(){
-		try(Reader reader = new InputStreamReader(Display.class.getResourceAsStream("buildings.json"), "UTF-8")){
-			//Gson gson = new GsonBuilder().create();
-			java.lang.reflect.Type mapType = new TypeToken<TreeMap<String,TreeMap<String,List<String>>>>(){}.getType();  
-			TreeMap<String,TreeMap<String,List<String>>> map = new Gson().fromJson(reader, mapType);
-			//TreeMap<String,TreeMap<String,List<String>>> map = gson.fromJson(reader, TreeMap.class);
-			main.setMap(map);
-		}
-		catch(IOException e) {
-			e.printStackTrace();
-		}
 	}
 	
 	public void setNbRedRows(int nb) {
@@ -110,13 +97,7 @@ public class Display extends JFrame implements Observable {
 		WindowListener exitListener = new WindowAdapter() {
 			@Override
 		    public void windowClosing(WindowEvent e) {
-				try(Writer writer = new OutputStreamWriter(new FileOutputStream("buildings.json") , "UTF-8")){
-		            Gson gson = new GsonBuilder().create();
-		            gson.toJson(main.getMap(), writer);
-					  db.close();
-		        }catch(IOException ex) {
-		        	ex.printStackTrace();
-		        }
+				db.close();
 				System.exit(0);
 		    }
 		};
@@ -147,7 +128,7 @@ public class Display extends JFrame implements Observable {
 	}
 	
 	private JButton createWarningButton() {
-		JButton button = new JButton(Integer.toString(nbRedRows));
+		JButton button = new JButton();
 		  try {
 		    Image img = ImageIO.read(getClass().getResource("warning.png"));
 		    button.setIcon(new ImageIcon(img));
@@ -156,16 +137,42 @@ public class Display extends JFrame implements Observable {
 		    button.addActionListener(new AbstractAction() {
 				@Override
 				public void actionPerformed(ActionEvent arg0) {
-					new WindowAlert(nbRedRows);
+					new AlertWindow(nbRedRows, sensorsOutOfLimit);
 					
 				}
 			});
 		  } catch (IOException ex) {
-		    ex.printStackTrace();
+			  JOptionPane.showMessageDialog(null,"Erreur : Impossible d'accéder au dossier courant.");
 		  } catch(IllegalArgumentException e) {
 			  JOptionPane.showMessageDialog(null,"Erreur : le logo du bouton Warning est introuvable.");
 		  }
 		  return button;
+	}
+	
+	private void updateSensorsOutOfLimit(List<List<String>> sensorsList, JButton button) {
+		sensorsOutOfLimit = new ArrayList<>();
+		for(List<String> sensor : sensorsList) {
+			if(sensor.get(8).equals("1")) {
+				sensorsOutOfLimit.add(sensor);
+			}
+		}
+		if(sensorsOutOfLimit.isEmpty()) {
+			nbRedRows = 0;
+		} else {
+			nbRedRows = sensorsOutOfLimit.size();
+		}
+		button.setText(Integer.toString(nbRedRows));
+	}
+
+	private List<List<String>> getConnectedSensors(){
+		List<List<String>> data = new ArrayList<>();
+		List<String> sensorsConnected = db.getConnectedSensors();
+		if(sensorsConnected != null) {
+			for(String sensor : sensorsConnected) {
+				data.add(Arrays.asList(sensor.split(":")));
+			}
+		}
+		return data;
 	}
 	
 	public JPanel initTabRealTime() { // Decoupage en 6 colonnes, 5 lignes
@@ -189,26 +196,29 @@ public class Display extends JFrame implements Observable {
 		c.insets = new Insets(0,10,60,10);
 		c.gridy = 1;
 		realTime.add(sortList,c);
-		
-		JButton button = createWarningButton();
-		c.insets = new Insets(0,10,60,10);
-		c.gridy = 4;
-		c.gridwidth = 2;
-		c.gridheight = 2;
-	    realTime.add(button,c);
 	    
 	 // Table
- 		List<List<String>> sensorsList = getConnectedSensors();
+ 		List<List<String>> sensorsList = getConnectedSensors(); // List of sensors connected to display
  		RealTimeTableModel rttmodel = new RealTimeTableModel(sensorsList);
  		JTable table = new JTable(rttmodel) {
  			@Override
  			public Dimension getPreferredScrollableViewportSize()
  		    {
- 		        return new Dimension(310, 310);
+ 		        return new Dimension(410, 310);
  		    }
  		};
+ 		
+ 		// Warning button
+		JButton button = createWarningButton();
+		updateSensorsOutOfLimit(sensorsList, button);
+		c.insets = new Insets(0,10,60,10);
+		c.gridy = 4;
+		c.gridwidth = 2;
+		c.gridheight = 2;
+	    realTime.add(button,c);
+ 		
  		// Sets the new cell renderer (whitch colors a line if the value exceeds the limits)
- 		table.setDefaultRenderer(Object.class,new ColorTableModel(this,button,sensorsList.size()));
+ 		table.setDefaultRenderer(Object.class,new ColorTableModel());
  		// Choix de la largeur des colonnes
  		if( table.getColumnModel().getSelectedColumnCount() > 3) {
  			table.getColumnModel().getColumn(0).setPreferredWidth(60);
@@ -444,41 +454,6 @@ public class Display extends JFrame implements Observable {
 	}
 	public void update(Observable o) {
 		
-	}
-	
-	private List<String> decodeInfo(String sensor){
-		// Splitter les donnees
-		List<String> rawData = Arrays.asList(sensor.split(":"));
-		// Ranger les donnees
-		List<String> sortedData = new ArrayList<>();
-		sortedData.add(rawData.get(0)); // Ajout du nom
-		String type = rawData.get(5); // Recuperation du type de fluide
-		sortedData.add(type); // Ajout du type
-		// Construction de la localisation
-		String loc = rawData.get(1) + " - Etage " + rawData.get(2) + " - " + rawData.get(3); // Batiment - Etage - Lieu
-		sortedData.add(loc);
-		// Association valeur + unité
-		String value = rawData.get(4) + " " + fluid.get(type);
-		sortedData.add(value);
-		// Ajout du 'booleen' seuilDepasse pour colorier les lignes concernees
-		sortedData.add(rawData.get(8));
-		
-		//sortedData = rawData; // Temporaire
-		return sortedData;
-	}
-	
-	public List<List<String>> getConnectedSensors(){
-		List<List<String>> data = new ArrayList<>();
-		List<String> sensorsConnected = db.getConnectedSensors();
-		if(sensorsConnected != null) {
-			for(String sensor : sensorsConnected) {
-				data.add(decodeInfo(sensor));
-			}
-			return data;
-		}
-		return null;
-//		List<List<String>> data = Arrays.asList(Arrays.asList("capteur1","ELECTRICITE","U3 - U3-215","2 kWh"),Arrays.asList("capteur3","TEMPERATURE","U4 - Couloir","1 °C"));
-//		return data;
 	}
 	
 	public List<String> getSensorsWithFluid(String fluidType) {
