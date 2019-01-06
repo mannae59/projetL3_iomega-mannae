@@ -27,7 +27,7 @@ public class DatabaseCommunication implements Observable {
 	Statement stmt;
 	Map <String,Map<String,List<String>>> treeGestionSensor ;
 	Fluid fluid = new Fluid();
-	Map<String,List<Integer>> defaultLimit = new TreeMap<>(); // Nicolas -- Changement de clé de Fluid vers String car l'enum n'en est plus un, pour pouvoir stocker les unites
+	Map<String,List<Integer>> defaultLimit = new TreeMap<>(); // Nicolas -- Changement de clÃ© de Fluid vers String car l'enum n'en est plus un, pour pouvoir stocker les unites
 
 	
 	
@@ -98,7 +98,7 @@ public class DatabaseCommunication implements Observable {
 			}
 			
 		}catch(ClassNotFoundException | SQLException e){
-			// JOptionPane.showMessageDialog(null,"Erreur : Impossible de communiquer avec la base de données."); // Suggestion (Nicolas) -> affiche une fenêtre avec un message, ça pourrait être intéressant :D
+			// JOptionPane.showMessageDialog(null,"Erreur : Impossible de communiquer avec la base de donnÃ©es."); // Suggestion (Nicolas) -> affiche une fenÃªtre avec un message, Ã§a pourrait Ãªtre intÃ©ressant :D
 			System.err.println(e);
 		}
 		
