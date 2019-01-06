@@ -121,26 +121,20 @@ public class SimulatorsCommunication implements Runnable, Observable {
 		addRoomIfAbsent(sensorInfo);
 		// Ajouter l'entree a la base de donnees
 		database.addNewSensor(name,sensorInfo);
-		for(Observer o : tabObserver) {
-			notifyObserver(o);
-		}
+//		notifyObserver();
 	}
 	
 	public void dataReceivedFromSensor(String data) {
 		String value = getInfoByMessage(data);
 		Date date = new Date();
 		database.setSensorValue(name, value, date);
-		for(Observer o : tabObserver) {
-			notifyObserver(o);
-		}
+//		notifyObserver();
 	}
 	
 	public void sensorDisconnected(String data) {
 		// TODO Complete this method
 		database.setSensorConnection(name,false);
-		for(Observer o : tabObserver) {
-			notifyObserver(o);
-		}
+//		notifyObserver();
 	}
 	private void readingSensorData() {
 		try {
@@ -179,7 +173,7 @@ public class SimulatorsCommunication implements Runnable, Observable {
 	public void addObserver(Observer o) {
 		// TODO Complete this method
 	}
-	public void notifyObserver(Observer o) {
+	public void notifyObserver() {
 		// TODO Complete this method
 	}
 	public void deleteObserver(Observer o) {

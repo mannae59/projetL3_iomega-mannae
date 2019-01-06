@@ -442,7 +442,7 @@ public class Display extends JFrame implements Observable {
 	}
 
 	@Override
-	public void notifyObserver(Observer o) {
+	public void notifyObserver() {
 		// TODO Auto-generated method stub
 		
 	}

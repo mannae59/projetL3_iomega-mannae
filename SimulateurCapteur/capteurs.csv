@@ -1,3 +1,7 @@
 capteur1;ELECTRICITE;U3;2;U3-215
 capteur2;EAU;U4;3;WC
 capteur3;TEMPERATURE;U2;1;couloir
+capteur4;AIRCOMPRIME;U4;3;WC
+capteur5;AIRCOMPRIME;U4;2;couloir
+capteur6;AIRCOMPRIME;U4;3;WC
+capteur7;AIRCOMPRIME;U4;0;couloir

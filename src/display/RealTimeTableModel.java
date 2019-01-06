@@ -1,5 +1,7 @@
 package display;
 
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import javax.swing.table.AbstractTableModel;
@@ -32,16 +34,17 @@ public class RealTimeTableModel extends AbstractTableModel{
 	
 	@Override
 	public Object getValueAt(int indiceLigne, int indiceColonne) {
+		int iCol;
 		switch(indiceColonne) {
-		case 0: return data.get(indiceLigne).get(0);
-		case 1: return data.get(indiceLigne).get(5);
+		case 0: iCol = 0; break;
+		case 1: iCol = 5; break;
 		case 2: return data.get(indiceLigne).get(1) + " - Etage " + data.get(indiceLigne).get(2) + " - " + data.get(indiceLigne).get(3);
-		case 3: return data.get(indiceLigne).get(4);
-		case 4: return data.get(indiceLigne).get(6);
-		case 5: return data.get(indiceLigne).get(7);
-		default : return data.get(indiceLigne).get(indiceColonne);
+		case 3: iCol = 4; break;
+		case 4: iCol = 6; break;
+		case 5: iCol = 7; break;
+		default : iCol = indiceColonne; break;
 		}
-		
+		return data.get(indiceLigne).get(iCol);
 	}
 	
 	@Override
