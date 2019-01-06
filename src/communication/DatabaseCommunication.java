@@ -38,33 +38,70 @@ public class DatabaseCommunication implements Observable {
 			connection = DriverManager.getConnection("jdbc:mysql://mysql-nicolasandre.alwaysdata.net:3306/nicolasandre_projetl3?useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=GMT%2B1" ,"130718_admin","nicolasde31560");  
 			//connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/capteurBDD" ,"root",""); //ma bdd  		 
 			stmt = connection.createStatement();
-			System.out.println("Connection Established");		 
-			 
+			System.out.println("Connection Established");		
+			
+			//INITIALISATION DE LA MAP DE MAP DE LISTE
+			treeGestionSensor=new TreeMap<>();
+				
+			
+			//INITIALISATION DE LA MAP AVEC LES VALEURS PAR DEFAULT
+			List<Integer> eau = new ArrayList<>();
+			List<Integer> elec = new ArrayList<>();
+			List<Integer> air = new ArrayList<>();
+			List<Integer> temp  = new ArrayList<>();
+			eau.add(0);
+			eau.add(10);
+			elec.add(10);
+			elec.add(500);
+			air.add(0);
+			air.add(5);
+			temp.add(17);
+			temp.add(22);
+			defaultLimit.put(Fluid.EAU, eau);
+			defaultLimit.put(Fluid.AIRCOMPRIME, air);
+			defaultLimit.put(Fluid.ELECTRICITE, elec);
+			defaultLimit.put(Fluid.TEMPERATURE, temp);
+			
+			//on remplie la map treeGestionSensor avec les capteurs deja existant dans la bdd
+			//entree capteurDejaLa=nom:bat:etage:lieu:type:sMin:sMax;
+			List<String > capteurDejaLa =getAllSensors();
+			for(String capteurAncien : capteurDejaLa) {
+				Map<String,List<String>> mapEtage;
+				List<String> listeInfo;
+				String[] infos = capteurAncien.split(":");
+				//info est du type Nom:lieu:typeFluide:seuilMin:seuilMax
+				String info = infos[0]+":"+infos[3]+":"+infos[4]+":"+infos[5]+":"+infos[6];
+				
+				//si le batiment existe deja
+				if (treeGestionSensor.containsKey(infos[1])) {
+					mapEtage = treeGestionSensor.get(infos[1]);
+					//si l'etage existe 
+					if (mapEtage.containsKey(infos[2])) {
+						listeInfo=mapEtage.get(infos[2]);
+					}
+					//si l'etage existe pas
+					else {
+						listeInfo = new ArrayList<>();
+						mapEtage.put(infos[2], listeInfo);
+					}
+					listeInfo.add(info);
+				}
+				//le batiment nexiste pas encore 
+				else {
+					//on cree  la map pour l'etage  et on rajoute le capteur dans la liste des capteurs
+					mapEtage = new TreeMap<>();
+					listeInfo = new ArrayList<>();
+					listeInfo.add(info);
+					mapEtage.put(infos[2], listeInfo);
+					treeGestionSensor.put(infos[1], mapEtage);
+				}
+			}
+			
 		}catch(ClassNotFoundException | SQLException e){
 			// JOptionPane.showMessageDialog(null,"Erreur : Impossible de communiquer avec la base de données."); // Suggestion (Nicolas) -> affiche une fenêtre avec un message, ça pourrait être intéressant :D
 			System.err.println(e);
 		}
-		//INITIALISATION DE LA MAP DE MAP DE LISTE
-		treeGestionSensor=new TreeMap<>();
-			
 		
-		//INITIALISATION DE LA MAP AVEC LES VALEURS PAR DEFAULT
-		List<Integer> eau = new ArrayList<>();
-		List<Integer> elec = new ArrayList<>();
-		List<Integer> air = new ArrayList<>();
-		List<Integer> temp  = new ArrayList<>();
-		eau.add(0);
-		eau.add(10);
-		elec.add(10);
-		elec.add(500);
-		air.add(0);
-		air.add(5);
-		temp.add(17);
-		temp.add(22);
-		defaultLimit.put(Fluid.EAU, eau);
-		defaultLimit.put(Fluid.AIRCOMPRIME, air);
-		defaultLimit.put(Fluid.ELECTRICITE, elec);
-		defaultLimit.put(Fluid.TEMPERATURE, temp);
 	}
 	
 	public void addObserver(Observer o) {
