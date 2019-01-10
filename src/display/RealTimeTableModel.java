@@ -1,23 +1,18 @@
 package display;
 
-import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 import javax.swing.table.AbstractTableModel;
 
 @SuppressWarnings("serial")
 public class RealTimeTableModel extends AbstractTableModel{
-	private List<List<String>> data;
+	private List<List<String>> data = null;
 	public RealTimeTableModel(List<List<String>> data) {
 		this.data = data;
 	}
 	
 	@Override
 	public int getColumnCount() {
-		if(getRowCount()==0) {
-			return 0;
-		}
 		return 4;
 		// We do not display neither the 'limit exceeded' boolean which
 		// allows us to know if we should paint the row in red or not,
@@ -47,6 +42,31 @@ public class RealTimeTableModel extends AbstractTableModel{
 		return data.get(indiceLigne).get(iCol);
 	}
 	
+	
+	public void update(List<List<String>> data) {
+		int nbRows = Integer.min(data.size(),this.data.size());
+			for(int i = 0; i < nbRows; i++) {
+				for(int j = 0; j < this.data.get(0).size(); j++) {
+					if(this.data.get(i).get(j) != data.get(i).get(j)) {
+						this.data.get(i).set(j,data.get(i).get(j));
+					}
+				}
+		}
+		
+		if(this.data.size() < data.size()) { // Il y a des nouvelles lignes
+			for(int i = this.data.size(); i < data.size(); i++) {
+				this.data.add(data.get(i));
+			}
+			fireTableRowsInserted(this.data.size(),data.size()-1);
+		}
+		else if(this.data.size() > data.size()){ // Il y a des lignes en moins
+			for(int i = data.size(); i < this.data.size(); i++) {
+				this.data.remove(data.size());
+			}
+		}
+		fireTableDataChanged();
+	}
+	
 	@Override
 	public String getColumnName(int indiceColonne) {
 		switch(indiceColonne) {
@@ -62,11 +82,22 @@ public class RealTimeTableModel extends AbstractTableModel{
 	
 	@Override
 	public void setValueAt(Object val, int indiceLigne, int indiceColonne) {
-		// Does nothing, because the values should not be modified.
+		if(val instanceof String) {
+			String value = (String) val;
+			data.get(indiceLigne).set(indiceColonne, value);
+		}
 	}
 	
 	@Override
 	public boolean isCellEditable(int indiceLigne, int indiceColonne) {
 		return false; // No cell is editable
+	}
+
+	/**
+	 * @param data the data to set
+	 */
+	public void setData(List<List<String>> data) {
+		this.data = data;
+		fireTableDataChanged();
 	}
 }

@@ -1,7 +1,5 @@
 package update;
 
-public class Observer {
-	public void update(Observable o) {
-		// TODO Complete this method
-	}
+public  interface  Observer {
+	public void update( int i) ;
 }

@@ -5,3 +5,6 @@ capteur4;AIRCOMPRIME;U4;3;WC
 capteur5;AIRCOMPRIME;U4;2;couloir
 capteur6;AIRCOMPRIME;U4;3;WC
 capteur7;AIRCOMPRIME;U4;0;couloir
+capteur8;EAU;U4;0;WC
+capteur44;EAU;U5;0;WC
+capteur10;EAU;U6;0;WC

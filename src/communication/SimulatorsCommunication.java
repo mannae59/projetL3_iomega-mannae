@@ -7,30 +7,25 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
-import java.util.TreeMap;
 
-import update.Observable;
 import update.Observer;
 
-public class SimulatorsCommunication implements Runnable, Observable {
+public class SimulatorsCommunication implements Runnable {
 	private List<Observer> tabObserver = new ArrayList<>();
 	Socket socketAtraiter; // Socket used by the simulator to send data for this sensor
 	ServerSocket serverSocket; // Socket listened by the server (used to close the connection if the simulator leaves
 	DatabaseCommunication database; // Interface with the database
-	Main main; // Allows to know who launched me, and allows the map to be shared
 	boolean firstCall; // Determines if it's the first thread or not
 	boolean dataWillCome = true; // Boolean which tells if the sensor is connected or not
 	String name = ""; // Sensor name
 	
-	public SimulatorsCommunication(boolean firstCall, Socket socketThread, ServerSocket serverSocket, DatabaseCommunication db, Main main) {
+	public SimulatorsCommunication(boolean firstCall, Socket socketThread, ServerSocket serverSocket, DatabaseCommunication db) {
 		this.firstCall = firstCall;
 		this.socketAtraiter = socketThread;
 		this.serverSocket = serverSocket;
 		this.database = db;
-		this.main = main;
 	}
 	
 	public void run() {
@@ -51,7 +46,8 @@ public class SimulatorsCommunication implements Runnable, Observable {
 			while (dataWillCome) {
 			    try{
 			      String input = in.readLine();
-			      System.out.println(input);
+			      if (input!=null)
+			    	  System.out.println(input);
 			    }
 			    catch (SocketException se)
 			    {
@@ -86,41 +82,19 @@ public class SimulatorsCommunication implements Runnable, Observable {
 		return splitted[2];
 	}
 	
-	private void addRoomIfAbsent(String sensorInfo) {
-		TreeMap<String,TreeMap<String,List<String>>> map = main.getMap();
-		String[] splitted = sensorInfo.split(":"); // TYPE:BATIMENT:ETAGE:LIEU
-		if(splitted.length != 4) errorMessage(sensorInfo);
-		if(map.containsKey(splitted[1])) {
-			TreeMap<String,List<String>> floors = map.get(splitted[1]);
-			if(floors.containsKey(splitted[2])) {
-				List<String> rooms = floors.get(splitted[2]);
-				if(!rooms.contains(splitted[3])) {
-					rooms.add(splitted[3]);
-				}
-			} else {
-				List<String> rooms = new ArrayList<>();
-				rooms.add(splitted[3]);
-				floors.put(splitted[2],rooms);
-			}
-		} else {
-			List<String> rooms = new ArrayList<>();
-			TreeMap<String,List<String>> floors = new TreeMap<>();
-			rooms.add(splitted[3]);
-			floors.put(splitted[2],rooms);
-			map.put(splitted[1], floors);
-		}
-		main.setMap(map);
-	}
+	
 	
 	public void sensorConnected(String data) {
 		// TODO Complete this method
+		
 		name = getNameByMessage(data);
 		String sensorInfo = getInfoByMessage(data);
+		
 
-		// Ajouter la salle/l'etage/le batiment si celui ci n'est pas present dans le TreeMap
-		addRoomIfAbsent(sensorInfo);
+		
 		// Ajouter l'entree a la base de donnees
 		database.addNewSensor(name,sensorInfo);
+		
 //		notifyObserver();
 	}
 	
@@ -133,6 +107,7 @@ public class SimulatorsCommunication implements Runnable, Observable {
 	
 	public void sensorDisconnected(String data) {
 		// TODO Complete this method
+		name = data.split(" ")[1];
 		database.setSensorConnection(name,false);
 //		notifyObserver();
 	}
@@ -166,18 +141,9 @@ public class SimulatorsCommunication implements Runnable, Observable {
 		        }
 		      }
 			socketAtraiter.close();
-	}catch (IOException e) {
-		e.printStackTrace();
-	}
-	}
-	public void addObserver(Observer o) {
-		// TODO Complete this method
-	}
-	public void notifyObserver() {
-		// TODO Complete this method
-	}
-	public void deleteObserver(Observer o) {
-		// TODO Complete this method
+		}catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 	
 	

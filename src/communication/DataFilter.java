@@ -15,23 +15,52 @@ public class DataFilter {
 		@Override
 		public int compare(String c1, String c2) {
 			String[] s1 = c1.split(":");
-			String[] s2 = c1.split(":");
-			return Integer.parseInt(s1[0]) - Integer.parseInt(s2[0]);
+			String[] s2 = c2.split(":");
+			return s1[0].compareTo(s2[0]);
+		}
+		
+	}
+	
+	public static class TypeComparator implements Comparator<String>{
+		@Override
+		public int compare(String c1, String c2) {
+			String[] s1 = c1.split(":");
+			String[] s2 = c2.split(":");
+			int difference = s1[5].compareTo(s2[5]);
+			if(difference == 0) difference = s1[0].compareTo(s2[0]);
+			return difference;
+		}
+		
+	}
+	
+	public static class BuildingComparator implements Comparator<String>{
+		@Override
+		public int compare(String c1, String c2) {
+			String[] s1 = c1.split(":");
+			String[] s2 = c2.split(":");
+			int difference = s1[1].compareTo(s2[1]);
+			if(difference == 0) difference = s1[0].compareTo(s2[0]);
+			return difference;
 		}
 		
 	}
 	
 	
-	public static List<String> filterSensorsRealTime(List<String> sensorsConnected, int sort) {
+	public static List<String> filterSensorsRealTime(List<String> sensorsConnected, int sort, DatabaseCommunication db) {
 		// Copied from "getConnectedSensors"
 		TreeSet<String> data;
 		switch(sort) {
-		case 1: data = new TreeSet<>(new NameComparator());
-		case 2: data = new TreeSet<>(new NameComparator());
-		default:JOptionPane.showMessageDialog(null,  "Erreur : ce mode de tri n'est pas supporté.");
+		case 0: data = new TreeSet<>(new NameComparator());break;
+		case 1: data = new TreeSet<>(new TypeComparator());break;
+		case 2: data = new TreeSet<>(new BuildingComparator());break;
+		default:JOptionPane.showMessageDialog(null,  "Erreur : ce mode de tri n'est pas supporte.");
 				data = new TreeSet<>(new NameComparator());
 				break;
 		}
+//		System.out.println(sensorsConnected);
+//		System.out.println("taille sensorsConnected : " + sensorsConnected.size());
+//		System.out.println("------");
+//		System.out.println("comparateur : " + data.comparator().toString());
 		if(sensorsConnected != null) {
 			for(String sensor : sensorsConnected) {
 				data.add(sensor);
@@ -40,9 +69,13 @@ public class DataFilter {
 		// On renvoie un TreeSet ? Un List<String> ? Un List<List<String>> ?
 		List<String> sortedData = new ArrayList<>();
 		Iterator<String> it = data.iterator();
+//		System.out.println("taille de data : " + data.size());
 		while(it.hasNext()) {
-			sortedData.add(it.next());
+			String item = it.next();
+//			System.out.println("recuperation de " + item);
+			sortedData.add(item);
 		}
+//		System.out.println(sortedData);
 		return sortedData;
 	}
 	public static Map<String,Map<String,List<String>>> filterByLocation() {

@@ -17,10 +17,11 @@ public class Fluid {
 		map.put(TEMPERATURE, "°C");
 		map.put(AIRCOMPRIME,"m3/h");
 	}
+	// Returns the keys (not the values)
 	public Set<String> keySet() {
 		return map.keySet();
 	}
-	
+	// Returns the values (i.e the units) - not the keys.
 	public Collection<String> values() {
 		return map.values();
 	}
@@ -33,5 +34,15 @@ public class Fluid {
 			return key;
 		}
 		return null;
+	}
+	public int getIndex(String element) {
+		if(map.containsKey(element)) {
+			int i = 0;
+			for(String item : keySet()) {
+				if(item.equals(element)) return i;
+				else i++;
+			}
+		}
+		return -1;
 	}
 }

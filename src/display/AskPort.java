@@ -13,17 +13,10 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JTextField;
 
-import communication.DatabaseCommunication;
-import communication.Main;
-
 @SuppressWarnings("serial")
 public class AskPort extends JFrame {
 	int port = 0;
-	DatabaseCommunication db;
-	Main main;
-	public AskPort(DatabaseCommunication db, Main main) {
-		this.db = db;
-		this.main = main;
+	public AskPort() {
 		// New window asking the port
 		setSize(200,150); // Taille de la fenetre : 640 x 480
 		setLocationRelativeTo(null); // Centrage
@@ -31,12 +24,12 @@ public class AskPort extends JFrame {
 		setLayout(null);
 		
 		// Ajout du label
-		JLabel label = new JLabel("Entrez le numéro de port :");
+		JLabel label = new JLabel("Entrez le numero de port :");
 		label.setBounds(20,10,150,20);
 		add(label);
 		
 		// Ajout de la zone de texte
-		JTextField text = new JTextField();
+		JTextField text = new JTextField("5678");
 		// Creation de l'action "lancer la fenetre principale"
 		Action lancerProgramme = createAction(text);
 		text.addActionListener(lancerProgramme);
@@ -49,8 +42,9 @@ public class AskPort extends JFrame {
 		okButton.setBounds(100,50,75,20);
 		add(okButton);
 	}
-	public void hideMyself() {
-		this.setVisible(false);
+	
+	public int getPort() {
+		return port;
 	}
 	
 	public void setCloseOperation() {
@@ -58,7 +52,6 @@ public class AskPort extends JFrame {
 		WindowListener exitListener = new WindowAdapter() {
 			@Override
 		    public void windowClosing(WindowEvent e) {
-				db.close();
 				System.exit(0);
 		    }
 		};
@@ -76,12 +69,10 @@ public class AskPort extends JFrame {
 						if(port < 1 || port > 65535) {
 							throw new IllegalArgumentException("Port doit etre compris entre 1 et 65535");
 						}
-						main.setPort(port);
-						new Display(db,main);
-						hideMyself();
+						dispose();
 					}
 					catch(IllegalArgumentException n) {
-						JOptionPane.showMessageDialog(null,  "\"" + text.getText() + "\" n'est pas un nombre valide.\nEntrez un numéro de port valide.");
+						JOptionPane.showMessageDialog(null,  "\"" + text.getText() + "\" n'est pas un nombre valide.\nEntrez un numero de port valide.");
 					}
 				}
 			};

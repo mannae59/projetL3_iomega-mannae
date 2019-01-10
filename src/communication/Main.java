@@ -1,101 +1,98 @@
 package communication;
 
 import java.io.IOException;
-import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.List;
-import java.util.TreeMap;
-
-import javax.swing.SwingUtilities;
 
 import display.AskPort;
+import display.Display;
 
-public class Main implements Runnable {
-	private int port = 0;
-	private DatabaseCommunication db;
-	private TreeMap<String,TreeMap<String,List<String>>> buildingsList = new TreeMap<>();
-	public Main(DatabaseCommunication db) {
-		this.db = db;
-	}
+public class Main  {
+	private int port = 0;	
+	private  DatabaseCommunication db ;
 	
-	public void run() {
-		try {
-		    while(port == 0) {
-		    	Thread.sleep(100);
-		    }
-		}catch(InterruptedException e) {
-			e.printStackTrace();
-		}
-	    startServer(port,db);
-	}
-	
-	public void setPort(int port) {
-		this.port = port;
-	}
-	
-	public TreeMap<String,TreeMap<String,List<String>>> getMap(){
-		return buildingsList;
-	}
-	public void setMap(TreeMap<String,TreeMap<String,List<String>>> map) {
-		this.buildingsList = map;
-	}
-	
-	public void startServer(int port, DatabaseCommunication db) {
-		ServerSocket socketserver; // Socket principal du serveur
-		Socket socketThread; // Socket attribué au thread qui traitera un capteur
-		boolean dataWillCome = true;
-		try {
-			// Declaration de la ressource
-			InetAddress adresseServeur = InetAddress.getLocalHost(); // Recuperation de l'adresse de la machine
-			socketserver = new ServerSocket(port);
-			try {
-				// Utilisation de la ressource
-				socketThread = socketserver.accept();
-				SimulatorsCommunication simulatorStatus = new SimulatorsCommunication(true,socketThread,socketserver,db,this);
-				Thread t = new Thread(simulatorStatus);
-				t.start();
-				while(dataWillCome){
-					socketThread = socketserver.accept();
-					SimulatorsCommunication lecteur = new SimulatorsCommunication(false,socketThread,socketserver,db,this);
-					Thread t2 = new Thread(lecteur);
-					t2.start();
-					dataWillCome = t.isAlive();
-					// If the first thread is dead, that means the simulator is
-					// stopped and no more information will be received
-					// In general this boolean won't turn False because the socket
-					// is closed before this call so this thread throws an IOException
-				}
-			}
-			finally {	
-				socketserver.close();
-			}			
-		}
-		catch (IOException e) {
-			
-		}
-	}
-	
-	public static void main(String[] args) {		
-		// Ouverture de la fenetre de demande du port
-		// Initialisation de l'interface
+	private Display display = null;
+	private SimulatorsCommunication simulatorStatus;
+	public Main(int port) {
 		
-    	DatabaseCommunication db = new DatabaseCommunication();
-	    
-	    Main main = new Main(db);
-	    Thread t = new Thread(main);
-	    t.start();
-	    
-//	    SwingUtilities.invokeLater(()->{
-//	    	Display display = new Display(db,main);
-//	    });
-	    SwingUtilities.invokeLater(()->{
-	    	AskPort askPort = new AskPort(db,main);
-	    	askPort.setVisible(true);
-	    });
-	    
-//		Display display = new Display(db);
-//		display.setVisible(true);
+		this.port = port;
+		instanciate();
+		Server server = new Server();
+		Thread t = new Thread(server);
+		t.start();
+	
+		
+	}
+	private void instanciate() {
+    	db = new DatabaseCommunication();
+		display = new Display(db, this);
+		db.addObserver(display);
+		display.setVisible(true);
+	}
+	
+	
+	
+	private class Server implements Runnable {
+	
+		public void run() {
+		    startServer(port,db);
+		}
+		
+		
+		
+		public void startServer(int port, DatabaseCommunication db) {
+			ServerSocket socketserver; // Socket principal du serveur
+			Socket socketThread; // Socket attribue au thread qui traitera un capteur
+			boolean dataWillCome = true;
+			try {
+				// Declaration de la ressource
+				socketserver = new ServerSocket(port);
+				try {
+					// Utilisation de la ressource
+					socketThread = socketserver.accept();
+					simulatorStatus = new SimulatorsCommunication(true,socketThread,socketserver,db);
+					Thread t = new Thread(simulatorStatus);
+					t.start();
+					while(dataWillCome){
+						socketThread = socketserver.accept();
+						SimulatorsCommunication lecteur = new SimulatorsCommunication(false,socketThread,socketserver,db);
+						Thread t2 = new Thread(lecteur);
+						t2.start();
+						dataWillCome = t.isAlive();
+						// If the first thread is dead, that means the simulator is
+						// stopped and no more information will be received
+						// In general this boolean won't turn False because the socket
+						// is closed before this call so this thread throws an IOException
+					}
+				}
+				finally {	
+					socketserver.close();
+				}			
+			}
+			catch (IOException e) {
+				
+			}
+		}
+	
+	}
+	
+	public static void main(String[] args) {
+		
+		
+		//fenetre de demande de port  
+	    AskPort askPort = new AskPort();
+    	askPort.setVisible(true);
+    	int port = 0;
+    	while((port = askPort.getPort()) == 0) {
+	    	try {
+	    		Thread.sleep(100); // Wait for 100 mlilliseconds
+	    	}catch(InterruptedException e) {
+	    		e.printStackTrace();
+	    	}
+	    }
 
+    	Main main = new Main(port);
+//    	Thread t = new Thread(main);
+// 	    t.start();
 	}
 }
