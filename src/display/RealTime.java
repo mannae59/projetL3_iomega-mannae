@@ -1,7 +1,6 @@
 package display;
 
 import java.awt.BorderLayout;
-import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.awt.Image;
 import java.awt.event.ActionEvent;
@@ -26,6 +25,7 @@ import communication.DataFilter;
 import communication.DatabaseCommunication;
 
 public class RealTime extends JPanel{
+	private static final long serialVersionUID = 1L;
 	private JLabel lblTrierPar;
 	private JComboBox<String> sortList;
 	private RealTimeTableModel rttmodel ;
@@ -68,7 +68,7 @@ public class RealTime extends JPanel{
 		sortList = new JComboBox<>(sorting) ;
 		sortList.addActionListener(new AbstractAction() {
 			public void actionPerformed(ActionEvent e) {
-				rttmodel.update(splitData(DataFilter.filterSensorsRealTime(listConnectedSensors,sortList.getSelectedIndex(),db)));
+				rttmodel.update(splitData(DataFilter.filterSensorsRealTime(listConnectedSensors,sortList.getSelectedIndex())));
 				rttmodel.fireTableChanged(null);
 				rttmodel.fireTableDataChanged();
 				if( table.getColumnModel().getColumnCount() > 3) {
@@ -77,7 +77,6 @@ public class RealTime extends JPanel{
 		 			table.getColumnModel().getColumn(2).setPreferredWidth(150);
 		 			table.getColumnModel().getColumn(3).setPreferredWidth(50);
 		 		}
-				System.out.println(listConnectedSensors);
 			}
 		});
 		
@@ -86,7 +85,6 @@ public class RealTime extends JPanel{
  		List<List<String>> sensorsList = getConnectedSensors(); // List of sensors connected to display
  		rttmodel = new RealTimeTableModel(sensorsList);
  		table = new JTable(rttmodel);
- 		System.out.println(listConnectedSensors);	
 		// Warning button
 		btnWarning = createWarningButton();
 		updateSensorsOutOfLimit(sensorsList, btnWarning);
@@ -116,9 +114,6 @@ public class RealTime extends JPanel{
  		panelD.add(panelSortList);
  		panelD.add(panelBtnWarning);
  		
- 		//demarrer le thread e
- 		Timer timer =new Timer();
- 		timer.start();
  		
 	}
 	
@@ -147,9 +142,6 @@ public class RealTime extends JPanel{
 		    button.setHorizontalTextPosition(SwingConstants.CENTER);
 		    button.setVerticalTextPosition(SwingConstants.BOTTOM);
 		    button.addActionListener(new AbstractAction() {
-				/**
-				 * 
-				 */
 				private static final long serialVersionUID = 1L;
 
 				@Override
@@ -189,29 +181,9 @@ public class RealTime extends JPanel{
 	
 	public void updateTabRealTime() {
 		listConnectedSensors = db.getConnectedSensors();
-		List<List<String>> data = splitData(DataFilter.filterSensorsRealTime(listConnectedSensors,sortList.getSelectedIndex(),db));
+		List<List<String>> data = splitData(DataFilter.filterSensorsRealTime(listConnectedSensors,sortList.getSelectedIndex()));
 		rttmodel.update(data);
 		updateSensorsOutOfLimit(splitData(listConnectedSensors), btnWarning);
 	}
-	
-	
-	private class Timer extends Thread{
-		@Override
-        public void run(){
-        	while(true) {
-        		try {
-					sleep(500);
-					updateTabRealTime();
-				} catch (InterruptedException e) {
-					
-					e.printStackTrace();
-				}
-        	}
-
-        }
-
-    }
-
-	
 	
 }

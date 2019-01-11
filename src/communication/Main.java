@@ -25,7 +25,7 @@ public class Main  {
 	}
 	private void instanciate() {
     	db = new DatabaseCommunication();
-		display = new Display(db, this);
+		display = new Display(db);
 		db.addObserver(display);
 		display.setVisible(true);
 	}

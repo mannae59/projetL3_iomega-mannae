@@ -1,21 +1,24 @@
 package communication;
 
+import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.sql.Timestamp;
+import java.sql.Time;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Date;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
-import java.util.stream.Collectors;
+
+import javax.swing.JOptionPane;
+
+import com.mysql.cj.jdbc.exceptions.CommunicationsException;
 
 import update.Observable;
 import update.Observer;
@@ -36,7 +39,7 @@ public class DatabaseCommunication implements Observable {
 		try{		 
 			Class.forName("com.mysql.cj.jdbc.Driver");
 			connection = DriverManager.getConnection("jdbc:mysql://mysql-nicolasandre.alwaysdata.net:3306/nicolasandre_marieleontinelandmann_projets5?useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=GMT%2B1" ,"130718_admin","nicolasde31560");  
-			//connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/capteurBDD" ,"root",""); //ma bdd  		 
+//			connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/Andre_Landmann_ProjetS5" ,"root",""); //ma bdd 	 
 			
 			System.out.println("Connection Established");		
 			
@@ -64,7 +67,6 @@ public class DatabaseCommunication implements Observable {
 			
 			
 		}catch(ClassNotFoundException | SQLException e){
-			// JOptionPane.showMessageDialog(null,"Erreur : Impossible de communiquer avec la base de données."); // Suggestion (Nicolas) -> affiche une fenêtre avec un message, ça pourrait être intéressant :D
 			System.err.println(e);
 		}
 		
@@ -126,51 +128,47 @@ public class DatabaseCommunication implements Observable {
 		
 	}
 	
-	public void setSensorConnection(String sensorName, boolean isConnected) {
-		
-		int connect = isConnected? 1: 0;
-		Statement stmt =null;
-		try {
-			stmt = connection.createStatement();
-			stmt.executeUpdate("UPDATE Capteur SET connecte="+connect+" WHERE nom='"+sensorName+"'");
-			if (connect==0) {//on met a null la valeur dans Donnee si on deconnecte le capteur
-				Date date = new Date(System.currentTimeMillis());
-				DateFormat df= new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-				String d = df.format(date);
-			
-				stmt.executeUpdate("INSERT INTO Donnee (temps,valeur,nom_c) "
-						+ "VALUES  ('"+d+  "',NULL,'"+sensorName +"' )" );
-				//mise a jour dynamique 
-//				System.out.println("*** notify decx ***");
-				notifyObserver(3);
-			}
-			
-		} catch (SQLException e) {
-			
-			e.printStackTrace();
-		}finally {
-			if (stmt!=null)
-				try {
-					stmt.close();
-				} catch (SQLException e) {
-					e.printStackTrace();
-				}
-		}
-		
-	}
+public void setSensorConnection(String sensorName, boolean isConnected) {
+        
+        int connect = isConnected? 1: 0;
+        Statement stmt =null;
+        try {
+            stmt = connection.createStatement();
+            stmt.executeUpdate("UPDATE Capteur SET connecte="+connect+" WHERE nom='"+sensorName+"'");
+            if (connect==0) {//deconnection on en informe tabreal
+                
+                //notifyObserver(3);
+            }
+            
+        } catch (SQLException e) {
+            
+            e.printStackTrace();
+        }finally {
+            if (stmt!=null)
+                try {
+                    stmt.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+        }
+        
+    }
 	
 	
 	public void setSensorValue(String sensorName, String value, Date date) {
-		DateFormat df= new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-		String d = df.format(date);
+		DateFormat df= new SimpleDateFormat("yyyy-MM-dd");
+		DateFormat tf= new SimpleDateFormat("HH:mm:ss");
+		String ddate = df.format(date);
+		String tdate= tf.format(date);
+
 		Statement stmt =null ;
 		try {
 			stmt = connection.createStatement();
 			
 			stmt.executeUpdate("UPDATE Capteur SET valeur='"+value+"'  WHERE nom='"+sensorName+"'");
-			stmt.executeUpdate("INSERT INTO Donnee (temps,valeur,nom_c) "
-					+ "VALUES  ('"+d+"','"+value+"','"+sensorName +"' )" );
-			notifyObserver(1);
+			stmt.executeUpdate("INSERT INTO Donnee (valeur,nom_c,date,temps) "
+					+ "VALUES  ('"+value+"','"+sensorName +"', '"+ddate+"', '"+tdate+"')" );
+			//notifyObserver(1);
 			
 		} catch (SQLException e) {
 			
@@ -268,9 +266,8 @@ public class DatabaseCommunication implements Observable {
 			}
 			
 		} catch (SQLException e) {
-				
-			e.printStackTrace();
-		}finally {
+				e.printStackTrace();
+		} finally {
 			if (stmt!=null)
 				try {
 					stmt.close();
@@ -316,34 +313,40 @@ public class DatabaseCommunication implements Observable {
 		return lCapteurFluid;
 	}
 	
-	
+	//a finir
 	public List<String> getSensorWithDate(String sensorName, Date start, Date stop) {
 		List<String> lCapteur = new ArrayList<>();
 
 		DateFormat df= new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+
 		String deb = df.format(start);
+
 		String fin = df.format(stop);
-		System.out.println(deb +" : "+fin);
+
+//		System.out.println("test dans getSensorWithDate " +deb+" : "+fin);
 		Date d;
 		Double val;
-		Timestamp timestamp;
+		
 		String entree;
 		
 		Statement stmt=null ;
 		try {
 			stmt = connection.createStatement();
-					
-			ResultSet rs = stmt.executeQuery("SELECT temps,valeur FROM Donnee WHERE nom_c='"+sensorName+"' and temps<='"+fin+
-					"' and temps>='"+deb+"'" );
+			ResultSet rs = stmt.executeQuery("SELECT * FROM Donnee where  nom_c='"+sensorName
+	                +"' and  ADDTIME(CONVERT(date, DATETIME), temps) >='"+deb+"' and ADDTIME(CONVERT(date, DATETIME), temps)<='"+fin+"'  ORDER BY ADDTIME(CONVERT(date, DATETIME), temps) ASC");
+			
+
+
 			while (rs.next()) {
-				  
-				  val = rs.getBigDecimal("valeur").doubleValue();
-				  
+				  BigDecimal bd = rs.getBigDecimal("valeur");
+				  val = bd.doubleValue();
+				  Time time =rs.getTime("temps");
+				  Date date = rs.getDate("date");
+				  d = getDate(date, time);
 					
-				  timestamp =rs.getTimestamp("temps");
-				  d = new Date(timestamp.getTime());
 				  entree=val+":"+df.format(d);
 				  lCapteur.add(entree);
+					
 				  
 			}
 			
@@ -413,10 +416,14 @@ public class DatabaseCommunication implements Observable {
 		Statement stmt =null ;
 		try {
 			stmt = connection.createStatement();			
-			ResultSet rs = stmt.executeQuery("SELECT MIN(temps) from Donnee " );
+			ResultSet rs = stmt.executeQuery("SELECT date,temps FROM Donnee where date = ( SELECT min(date)  FROM Donnee )" );
 			if (rs.next()) {
-				Timestamp timestamp =rs.getTimestamp("temps");
-				d = new Date(timestamp.getTime());	
+				
+				Time time =rs.getTime("temps");
+				Date date = rs.getDate("date");
+				
+				if (time!=null && date !=null)
+					d = getDate(date, time);
 			}	
 			
 		} catch (SQLException e) {	
@@ -432,6 +439,16 @@ public class DatabaseCommunication implements Observable {
 		
 		return d;
 	}
+	public static Date getDate(Date date, Time time) {
+        Calendar calendar=Calendar.getInstance();
+        calendar.setTime(date);
+        Calendar calendar1=Calendar.getInstance();
+        calendar1.setTime(time);
+        calendar.set(Calendar.MINUTE, calendar1.get(Calendar.MINUTE));
+        calendar.set(Calendar.SECOND, calendar1.get(Calendar.SECOND));
+        calendar.set(Calendar.HOUR_OF_DAY, calendar1.get(Calendar.HOUR_OF_DAY));
+        return calendar.getTime();
+    }
 	
 	public void close() {
 		try {

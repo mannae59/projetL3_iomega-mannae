@@ -4,14 +4,15 @@ import java.awt.Color;
 import java.awt.Font;
 import java.awt.Point;
 import java.awt.event.ActionEvent;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import javax.swing.AbstractAction;
-import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JToggleButton;
 import javax.swing.JWindow;
 import javax.swing.SwingConstants;
 import javax.swing.border.LineBorder;
@@ -30,14 +31,13 @@ public class TimeChooser extends JWindow {
 	JSpinField spinnerMinutes;
 	JSpinField spinnerSeconds;
 	SimpleDateFormat formater;
-	public TimeChooser(JButton button) {
+	public TimeChooser(JToggleButton button, TimeChooser t) {
 		JPanel pan = new JPanel();
 	    pan.setBorder(new LineBorder(Color.black));
 	    getContentPane().add(pan,"Center");
 		pan.setLayout(null);
 		setSize(225,120);
 		pan.setSize(240,130);
-		//dateChooser.addComponentListener(l);
 		JLabel lblDay = new JLabel("Jour",SwingConstants.CENTER);
 		JLabel lblMonth = new JLabel("Mois",SwingConstants.CENTER);
 		JLabel lblYear = new JLabel("Annee",SwingConstants.CENTER);
@@ -47,6 +47,7 @@ public class TimeChooser extends JWindow {
 		
 
 		spinnerDay = new JSpinField(1,31);
+		spinnerDay.setValue(1);
 		spinnerMonth = new JMonthChooser();
 		spinnerYear = new JYearChooser();
 		spinnerHour = new JSpinField(0,23);
@@ -79,10 +80,11 @@ public class TimeChooser extends JWindow {
 		pan.add(lblSeconds);
 		pan.add(spinnerSeconds);
 
-		setAction(button);
+		setAction(button,t);
 	}
-
-	private void setAction(JButton b) {
+	// Shows the panel if closed, sets the date if panel opened
+	// (and sets the date for another TimeChooser t)
+	private void setAction(JToggleButton b, TimeChooser t) {
 		b.addActionListener(new AbstractAction(){
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -97,7 +99,7 @@ public class TimeChooser extends JWindow {
 						formater = null;
 						formater = new SimpleDateFormat("dd/MM/yyyy  HH:mm:ss ");
 						b.setText(formater.format(getDate()));
-						b.setFont(new Font("Verdana", Font.PLAIN, 12));
+						if(t != null) t.setDate(getDate());
 					}
 				}else {
 					me.show(b, b.getWidth(), b.getHeight());
@@ -107,7 +109,7 @@ public class TimeChooser extends JWindow {
 	}
 
 	// Shows the window under the button which calls it.
-	public void show(JButton button, int x, int y) {
+	public void show(JToggleButton button, int x, int y) {
 		Point p = button.getLocationOnScreen();
 		p.x += x - getWidth()*0.75;
 		p.y += y;
@@ -115,7 +117,6 @@ public class TimeChooser extends JWindow {
 		setVisible(true);
 	}
 	
-	@SuppressWarnings("deprecation")
 	public Date getDate() {
 		int year = spinnerYear.getValue();
 		int month = spinnerMonth.getMonth();
@@ -123,20 +124,29 @@ public class TimeChooser extends JWindow {
 		int hours = spinnerHour.getValue();
 		int minutes = spinnerMinutes.getValue();
 		int seconds = spinnerSeconds.getValue();
+		// Verification de la validite des valeurs entrees
 		if(year <= 0 || month < 0 || month > 11 || days < 0 || days > 31 || hours < 0 || hours > 23 || minutes < 0 || minutes > 60 || seconds < 0 || seconds > 60) {
 			return null;
 		}
-		return new Date(year - 1900,month,days,hours,minutes,seconds);
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		try {
+           return sdf.parse(year + "-" + (month+1) + "-" + days + " " + hours + ":" + minutes + ":" + seconds);
+        } catch (ParseException e) {
+            return null;
+        }
 	}
 
-	@SuppressWarnings("deprecation")
 	public void setDate(Date newDate) {
-		spinnerYear.setValue(newDate.getYear());
-		spinnerMonth.setMonth(newDate.getMonth());
-		spinnerDay.setValue(newDate.getDay());
-		spinnerHour.setValue(newDate.getHours());
-		spinnerMinutes.setValue(newDate.getMinutes());
-		spinnerSeconds.setValue(newDate.getSeconds());
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy MM dd HH mm ss");
+		String dateAsString = sdf.format(newDate);
+		String[] elems = dateAsString.split(" ");
+		assert(elems.length == 6);
+		spinnerYear.setValue(Integer.parseInt(elems[0]));
+		spinnerMonth.setMonth(Integer.parseInt(elems[1])-1);
+		spinnerDay.setValue(Integer.parseInt(elems[2]));
+		spinnerHour.setValue(Integer.parseInt(elems[3]));
+		spinnerMinutes.setValue(Integer.parseInt(elems[4]));
+		spinnerSeconds.setValue(Integer.parseInt(elems[5]));
 	}
 	
 }

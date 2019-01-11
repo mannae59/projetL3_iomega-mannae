@@ -41,6 +41,7 @@ public class ConfigurationTreePanel extends JPanel{
 	private JSplitPane splitPane ;
 	private JPanel panelGauche;
 	private JPanel panelDroite;
+
 	private JTree arbre;
 	private JButton modif ;
 	private JLabel nom;
@@ -99,6 +100,8 @@ public class ConfigurationTreePanel extends JPanel{
 		//localisation panel pour le border layout
 		sMax =new JLabel("changer seuil MAX", SwingConstants.CENTER);
 		sMin=new JLabel("changer seuil MIN", SwingConstants.CENTER);
+		sMin.setVisible(true);
+		sMax.setVisible(true);
 		tMax =new JTextField("");
 		tMin = new JTextField("");
 		modif = new JButton("MODIFIER");
@@ -135,6 +138,7 @@ public class ConfigurationTreePanel extends JPanel{
 		tableur.addColumn("Lieu");
 		tableur.setRowCount(2);
 		tabLoc = new JTable(tableur);
+
 		//mettre en gras
 		tabLoc.setDefaultRenderer(Object.class,new MyRenderer());
 		tabLoc.setValueAt("BATIMENT", 0, 0);
@@ -145,7 +149,8 @@ public class ConfigurationTreePanel extends JPanel{
 		// Sélection d'une colonne impossible
 		tabLoc.setColumnSelectionAllowed(false);
 		tabLoc.setCellSelectionEnabled(false);
-				
+		tabLoc.setShowGrid(true);
+		
 				
 		min = new JLabel("SEUIL MIN :", SwingConstants.CENTER);
 		max = new JLabel("SEUIL MAX :", SwingConstants.CENTER);

@@ -38,94 +38,69 @@ import update.Observer;
 
 @SuppressWarnings("serial")
 public class Display extends JFrame implements Observer {
-	private List<Observer> tabObserver;
 	
 	
 	private ConfigurationTreePanel configuration;
 	private LaterTab laterTab;
-	
-	private List<String> sensorDateVariation1;
-	private List<String> sensorDateVariation2;
-	private List<String> sensorDateVariation3;
-	private List<String> sensorsAvailable; // Sensors got from the choice of the fluid on the 'later' panel
-	private List<List<String>> sensorsOutOfLimit;
 	private DatabaseCommunication db;
-	private int nbRedRows = 0;
 	private Fluid fluid;
-	JPanel mainPanel;
-	JPanel askPort;
-	JPanel later;
-	Main main;
+	private Timer timer;
+	private int ok =1;
+	private boolean stop=false;
+	private RealTime realTime;
+	private JPanel askPort;
+	private JPopupMenu menu; // Also needs to be declared here
 	
-	JPopupMenu menu; // Also needs to be declared here
-	// TODO Verifier ces variables : doute sur leur validite --Nicolas
-	private List<Date> sensorDateDisplay;
-	
-	public Display(DatabaseCommunication db, Main main){
+	public Display(DatabaseCommunication db){
 		this.db = db;
 		this.fluid = new Fluid();
-		this.main = main;
 		
 		initUI();
+
+ 		//demarrer le thread actualisation
+ 		timer =new Timer();
+ 		timer.start();
 	}
 	
 	
 	
 	public void setCloseOperation() {
-		setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
+		setDefaultCloseOperation(DISPOSE_ON_CLOSE);//on ferme la frame quand on appuie sur la croix
 		WindowListener exitListener = new WindowAdapter() {
 			@Override
 		    public void windowClosing(WindowEvent e) {
-				db.close();
-				System.exit(0);
+				ok=0;
+				while(!stop) {
+					//attendre que le thread Timer se termine
+				}
+				db.close();				
+				setVisible(false);
 		    }
 		};
+		
 		addWindowListener(exitListener);
 	}
 
 	    
 	
 	private void initUI(){
-		// Essayer d'appliquer le look de l'OS au lieu de celui de Swing
-//		try {
-//            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-//        } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | UnsupportedLookAndFeelException ex) {
-//        }
 		setTitle("Interface Neocampus"); // Titre de la fenetre
 		setSize(1024,768); // Taille de la fenetre : 640 x 480
 		setLocationRelativeTo(null); // Centrage
 		setCloseOperation(); // Sets the action performed when we click on the 'X'
 		JTabbedPane tabs = new JTabbedPane();
-		JPanel realTime = new RealTime(db);
+		realTime = new RealTime(db);
 		laterTab = new LaterTab(db,fluid);
 		configuration =new ConfigurationTreePanel(db,this);
 		tabs.addTab("Temps reel",realTime);
 		tabs.addTab("A posteriori",laterTab);
 		tabs.addTab("Configuration",configuration);
 		add(tabs);
-//		setVisible(true);
 	}
 	
-	
-	
-	
-	
-	
-	
-	
-	public List<String> getSensorsWithFluid(String fluidType) {
-		// TODO Complete this method
-		return null;
-	}
-
-	public List<String> getSensorWithDate(String sensorName, Date start, Date stop) {
-		// TODO Complete this method
-		return null;
-	}
-	
-	
+	/* Les connexions / deconnexions se font trop vite on est donc obliges d'utiliser un thread a part
+	 * pour 'reguler' les update  */
 	public void update(int i) {
-//		System.out.println("*** update  ***");
 		switch (i) {
 		case 0: 
 			// seuil change             
@@ -134,10 +109,11 @@ public class Display extends JFrame implements Observer {
             break;
 		case 1: //donnee mise a jour
            
-            updateDateSensor(); //update le tableau si cest les donnees de capteurs concerne par l'affichage
+//            realTime.z(); //update le tableau si cest les donnees de capteurs concerne par l'affichage
+			//realTime.updateTabRealTime();
             //appel getSensorWithDate(String sensorName, Date start, Date stop) et met a jour les attributs de Display 
             break;
-		case 2: //nouvelle connection 
+		case 2: // case 2: nouvelle connection 
            
             configuration.updateTree();
             break;
@@ -148,32 +124,23 @@ public class Display extends JFrame implements Observer {
         
 	}
 	
-	public void updateDateSensor() {
-		
-	}
 	
-//	public void updateTabRealTime() {
-//		System.out.println("*** update tabrealtime ***");
-//		//met a jour la liste de capteurs connecte
-//		listConnectedSensors = db.getConnectedSensors();
-//		//les organise cf nicolas
-//		List<List<String>> sensorsList = getConnectedSensors(); 
-//		System.out.println("nb sensors connected : " + sensorsList.size());
-//		//les remplace dans la classe realTimeTableModel
-//		rttmodel.setData(sensorsList);
-//		//et relance une fenetre 
-//		rttmodel.fireTableDataChanged();
-//		updateSensorsOutOfLimit(sensorsList,btnWarning);
-//		
-//	}
+	private class Timer extends Thread{
+		@Override
+        public void run(){
+        	while(ok==1) {
+        		try {
+					sleep(1000);
+					realTime.updateTabRealTime();
+				} catch (InterruptedException e) {
+					interrupt();
+				}
+        	}
+        	stop =true;
+			System.exit(0);
+
+        }
+
+    }
 	
-	
-	
-	public void displayCurveTime() {
-		// TODO Complete this method
-	}
-	
-	public void displaySensorsGestion() {
-		// TODO Complete this method
-	}
 }

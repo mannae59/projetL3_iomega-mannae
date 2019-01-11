@@ -38,6 +38,7 @@ public class AlertWindow extends JFrame {
 		
 		setSize(520,320);
 		setTitle("Liste des alertes");
+		setLocationRelativeTo(null);
 		
 		// Table
 		table = new JTable(new RealTimeTableModel(sensorsList) {

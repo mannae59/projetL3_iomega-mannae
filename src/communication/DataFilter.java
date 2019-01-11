@@ -46,8 +46,7 @@ public class DataFilter {
 	}
 	
 	
-	public static List<String> filterSensorsRealTime(List<String> sensorsConnected, int sort, DatabaseCommunication db) {
-		// Copied from "getConnectedSensors"
+	public static List<String> filterSensorsRealTime(List<String> sensorsConnected, int sort) {
 		TreeSet<String> data;
 		switch(sort) {
 		case 0: data = new TreeSet<>(new NameComparator());break;
@@ -57,10 +56,6 @@ public class DataFilter {
 				data = new TreeSet<>(new NameComparator());
 				break;
 		}
-//		System.out.println(sensorsConnected);
-//		System.out.println("taille sensorsConnected : " + sensorsConnected.size());
-//		System.out.println("------");
-//		System.out.println("comparateur : " + data.comparator().toString());
 		if(sensorsConnected != null) {
 			for(String sensor : sensorsConnected) {
 				data.add(sensor);
@@ -69,13 +64,10 @@ public class DataFilter {
 		// On renvoie un TreeSet ? Un List<String> ? Un List<List<String>> ?
 		List<String> sortedData = new ArrayList<>();
 		Iterator<String> it = data.iterator();
-//		System.out.println("taille de data : " + data.size());
 		while(it.hasNext()) {
 			String item = it.next();
-//			System.out.println("recuperation de " + item);
 			sortedData.add(item);
 		}
-//		System.out.println(sortedData);
 		return sortedData;
 	}
 	public static Map<String,Map<String,List<String>>> filterByLocation() {
